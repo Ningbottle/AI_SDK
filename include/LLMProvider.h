@@ -3,6 +3,7 @@
 #include <map>
 #include <functional>
 #include "common.h"
+#include "./util/myLog.h"
 
 namespace AI_Chat_SDK {
     class LLMProvider {
@@ -23,6 +24,7 @@ namespace AI_Chat_SDK {
         virtual void SendMessageStream(std::vector<Message> messages,
                                     std::map<std::string, std::string> requestParam,
                                     std::function<void(std::string, bool)>) = 0;
+        virtual std::string ModelDesc() const = 0;
     protected:
         bool _IsAvailable = false;
         std::string _ApiKey;        // Api key 用于模型通话
