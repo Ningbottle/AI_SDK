@@ -29,9 +29,9 @@ private:
 // {:>10s} 表示文件名右对齐，宽度至少10个字符（对应 __FILE__）
 // {:<4d} 表示行号左对齐，宽度至少4个字符（对应 __LINE__）
 // 其实本质还是调用了spdlog.但是我们保证了线程安全
-#define TRACE(format,...) bite::Logger::getLogger()->trace(std::string("[{:>10s}:{<4d}]: ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
-#define DEBUG(format,...) bite::Logger::getLogger()->debug(std::string("[{:>10s}:{<4d}]: ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
-#define INFO(format,...) bite::Logger::getLogger()->info(std::string("[{:>10s}:{<4d}]: ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
-#define WARN(format,...) bite::Logger::getLogger()->warn(std::string("[{:>10s}:{<4d}]: ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
-#define ERROR(format,...) bite::Logger::getLogger()->error(std::string("[{:>10s}:{<4d}]: ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
-#define CRITICAL(format,...) bite::Logger::getLogger()->critical(std::string("[{:>10s}:{<4d}]: ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
+#define TRACE(format,...) bite::Logger::getLogger()->trace(std::string("[{:>10s}:{:<4d}]: ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
+#define DEBUG(format,...) bite::Logger::getLogger()->debug(std::string("[{:>10s}:{:<4d}]: ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
+#define INFO(format,...) bite::Logger::getLogger()->info(std::string("[{:>10s}:{:<4d}]: ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
+#define WARN(format,...) bite::Logger::getLogger()->warn(std::string("[{:>10s}:{:<4d}]: ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
+#define ERROR(format,...) bite::Logger::getLogger()->error(std::string("[{:>10s}:{:<4d}]: ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
+#define CRITICAL(format,...) bite::Logger::getLogger()->critical(std::string("[{:>10s}:{:<4d}]: ") + format, __FILE__, __LINE__, ##__VA_ARGS__)

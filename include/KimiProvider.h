@@ -1,10 +1,12 @@
 #pragma once
 #include "LLMProvider.h"
 
-namespace AI_Chat_SDK {
-    class DeepSeekProvider : public LLMProvider {
+namespace AI_Chat_SDK
+{
+    class KimiProvider : public LLMProvider
+    {
     public:
-        virtual ~DeepSeekProvider() = default;
+        ~KimiProvider() = default;
         // 1. 初始化模型提供者，使用配置参数
         virtual bool Init(const std::map<std::string, std::string>& config) override;
         // 2. 是否初始化完成
@@ -22,4 +24,4 @@ namespace AI_Chat_SDK {
         // 6. 获取模型描述
         virtual std::string ModelDesc() const override;
     };
-} // namespace AI_chat
+}

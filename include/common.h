@@ -7,7 +7,7 @@ namespace AI_Chat_SDK {
 // 1.消息会话管理
 struct Message {
   // 一条消息需要什么，应该怎吗改变：
-  int _message_id;        // 消息id
+  std::string _message_id;        // 消息id
   std::string _role;      //扮演的角色
   std::string _content;   // 消息内容
   std::time_t _timestamp; //时间戳
@@ -52,7 +52,7 @@ struct ModuleInfo {
 
 // 4. 会话结构
 struct Session {
-  int _session_id;                //消息id
+  std::string _session_id;                //消息id
   std::string _model_name;        // 模型的名称
   std::vector<Message> _messages; // 消息的管理
   std::time_t _createAt;          // 会话的保存时间
