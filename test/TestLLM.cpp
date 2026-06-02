@@ -1,11 +1,13 @@
 #include <cstdio>
 #include <gtest/gtest.h>
+#include <memory>
 #include <spdlog/common.h>
-#include "../include/DeepSeekProvider.h"
-#include "../include/GLMProvider.h"
-#include "../include/KimiProvider.h"
-#include "../include/util/myLog.h"
-#include "../include/common.h"
+#include "../SDK/include/DeepSeekProvider.h"
+#include "../SDK/include/GLMProvider.h"
+#include "../SDK/include/KimiProvider.h"
+#include "../SDK/include/util/myLog.h"
+#include "../SDK/include/common.h"
+#include "../SDK/include/ChatSDK.h"
 
 // 这个是谷歌测试工具的宏，注意Test记得大写
 #if 0
@@ -66,11 +68,6 @@ TEST(GLMProviderTest,SendMessage)
     INFO("{}",responce.c_str());
     ASSERT_FALSE(responce.empty());
 }
-#endif
-
-
-
-
 
 TEST(KimiProviderTest,SendMessage)
 {
@@ -100,6 +97,60 @@ TEST(KimiProviderTest,SendMessage)
     // 断言响应不为空
     //INFO("{}",responce.c_str());
     ASSERT_FALSE(responce.empty());
+}
+#endif
+
+
+
+TEST(ChatSDKTest, sendMessage)
+{
+    auto sdk = std::make_shared<AI_Chat_SDK::ChatSDK>("test_chat.db");
+    ASSERT_TRUE(sdk != nullptr);   // 确保sdk初始化成功,不等于为真，则可以通过
+    // 1.先进行测试apiconfig 中的deepseek
+    auto deepseekConfig = std::make_shared<AI_Chat_SDK::ApiConfig>();
+    ASSERT_TRUE(deepseekConfig != nullptr); // 确保deepseekConfig初始化成功
+    deepseekConfig->_module_name = "deepseek-v4-flash";
+    deepseekConfig->_apiKey = ::getenv("deepseekapikey");
+    ASSERT_FALSE(deepseekConfig->_apiKey.empty()); // 只有不为空才能通过
+    deepseekConfig->_temperature = 0.7;
+    deepseekConfig->_max_tokens = 2048;
+
+    // 2. 在初始化glm的模型
+    auto glmConfig = std::make_shared<AI_Chat_SDK::ApiConfig>();
+    glmConfig->_module_name = "glm-4.7-flash";
+    glmConfig->_apiKey = ::getenv("glmapikey");
+    ASSERT_FALSE(glmConfig->_apiKey.empty()); // 只有不为空才能通过
+    glmConfig->_temperature = 0.7;
+    glmConfig->_max_tokens = 2048;
+
+    // 3. 初始化kimi大模型:
+    auto kimiConfig = std::make_shared<AI_Chat_SDK::ApiConfig>();
+    kimiConfig->_module_name = "Pro/moonshotai/Kimi-K2.6";
+    kimiConfig->_apiKey = ::getenv("kimiapikey");
+    ASSERT_FALSE(kimiConfig->_apiKey.empty()); // 只有不为空才能通过
+    kimiConfig->_temperature = 0.7;
+    kimiConfig->_max_tokens = 2048;
+
+    std::vector<std::shared_ptr<AI_Chat_SDK::Config>> cofings = {
+        deepseekConfig,
+        {glmConfig},
+        {kimiConfig},
+    };
+    sdk->InitAllModels(cofings);
+    auto sessionid = sdk->CreateSession(deepseekConfig->_module_name);
+    std::string message;
+    std::cout << " ----- 请输入 -----" << std::endl;
+    std::getline(std::cin, message);
+    auto res = sdk->SendMessage(sessionid, message);
+    ASSERT_FALSE(res.empty()); //只有不为空才能通过
+    std::cout << " ----- 回复 -----" << std::endl;
+    std::cout << res << std::endl;
+    std::cout << "------ 请再次输入----------" ;
+    std::getline(std::cin, message);
+    res = sdk->SendMessage(sessionid, message);
+    ASSERT_FALSE(res.empty()); //只有不为空才能通过
+    std::cout << " ----- 回复 -----" << std::endl;
+    std::cout << res << std::endl;
 }
 
 

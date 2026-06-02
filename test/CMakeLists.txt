@@ -30,11 +30,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # sources（源文件列表）是你自己定义的变量名。
 set(sources
     TestLLM.cpp
-    ../src/DeepSeekProvider.cpp
-    ../src/util/myLog.cpp
-    ../src/GLMProvider.cpp
-    ../src/KimiProvider.cpp
-    ../src/OllamalProvider.cpp
+    ../SDK/src/DeepSeekProvider.cpp
+    ../SDK/src/GLMProvider.cpp
+    ../SDK/src/KimiProvider.cpp
+    ../SDK/src/OllamalProvider.cpp
+    ../SDK/src/LLMManager.cpp
+    ../SDK/src/SessionManager.cpp
+    ../SDK/src/DataManager.cpp
+    ../SDK/src/ChatSDK.cpp
+    ../SDK/src/util/myLog.cpp
 )
 
 # 7. 创建可执行程序 target
@@ -66,8 +70,11 @@ find_package(spdlog REQUIRED)
 find_package(fmt REQUIRED)
 
 # GTest is used for unit testing.
-# GTest 用于单元测试。
 find_package(GTest REQUIRED)
+
+# SQLite3 is used for data persistence (DataManager).
+# SQLite3 用于数据持久化。
+find_package(SQLite3 REQUIRED)
 
 # PkgConfig helps CMake find libraries that provide .pc files.
 # PkgConfig 用于查找通过 pkg-config 管理的库，比如 jsoncpp。
@@ -105,4 +112,5 @@ target_link_libraries(LLMTest PRIVATE
 
     cpp-httplib
     ${JSONCPP_LIBRARIES}  # jsoncpp libraries，由 pkg-config 找到
+    SQLite::SQLite3        # SQLite3 library，数据持久化
 )
