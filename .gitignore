@@ -70,3 +70,11 @@ Testing/
 
 # Environment variables (API keys, secrets)
 .env
+
+
+cat >> .gitignore << 'EOF'
+
+# Database files (may contain user conversation data)
+*.db
+chatDB.db
+EOF
