@@ -29,23 +29,28 @@ namespace AI_Chat_Server
 
         auto kimiConfig = std::make_shared<AI_Chat_SDK::ApiConfig>();
         kimiConfig->_apiKey = config._kimiApiKey;
+        kimiConfig->_baseUrl = config._kimiApiUrl;
         kimiConfig->_module_name = "Pro/moonshotai/Kimi-K2.6";
         kimiConfig->_max_tokens = config._maxTokens;
         kimiConfig->_temperature = config._temperature;
-
-        auto OllmaConfig = std::make_shared<AI_Chat_SDK::OllamaConfig>();
-        OllmaConfig->_end_point = config._end_point;
-        OllmaConfig->_module_name = config._module_name;
-        OllmaConfig->_module_dec = config._module_dec;
-        OllmaConfig->_max_tokens = config._maxTokens;
-        OllmaConfig->_temperature = config._temperature;
 
         std::vector<std::shared_ptr<AI_Chat_SDK::Config>> configs = {
             DeepSeekConfig,
             GLMConfig,
             kimiConfig,
-            OllmaConfig,
         };
+
+        // Ollama 仅在 endpoint 非空时才注册
+        if (!config._end_point.empty()) {
+            auto OllmaConfig = std::make_shared<AI_Chat_SDK::OllamaConfig>();
+            OllmaConfig->_end_point = config._end_point;
+            OllmaConfig->_module_name = config._module_name;
+            OllmaConfig->_module_dec = config._module_dec;
+            OllmaConfig->_max_tokens = config._maxTokens;
+            OllmaConfig->_temperature = config._temperature;
+            configs.push_back(OllmaConfig);
+            INFO("Ollama 模型已注册: {} ({})", config._module_name, config._end_point);
+        }
         if( !_ChatSDK->InitAllModels(configs))
         {
             ERROR("Failed to initialize all models");
@@ -67,7 +72,7 @@ namespace AI_Chat_Server
             return false;
         }
         setHttpRoutes();
-        _ChatServer->set_mount_point("/", "./www");
+        _ChatServer->set_mount_point("/", "/home/wwh/AI_SDK/ChatServer/www");
 
         _isRunning.store(true);
         std::thread([this]() {
@@ -119,7 +124,7 @@ namespace AI_Chat_Server
             response.set_content(errJsonstr, "application/json");
             return;
         }
-        std::string moduleName = requestJson.get("moduleName", "deepseek-v4-falsh").asString();
+        std::string moduleName = requestJson.get("model", "deepseek-v4-flash").asString();
         std::string sessionId = _ChatSDK->CreateSession(moduleName);
         if(sessionId.empty())
         {
@@ -307,18 +312,25 @@ namespace AI_Chat_Server
 
         response.set_chunked_content_provider("text/event-stream", [this, sessionId, message](size_t offset,httplib::DataSink& dataSink)->bool {
             auto WriteChunk = [&](const std::string& chunk, bool last) {
-                std::string event = "data: " + chunk + "\n\n";
+                // 跳过空 chunk（reasoning tokens 等），但不跳过最后一个 done 信号
+                if (chunk.empty() && !last) return true;
+
+                Json::Value eventJson;
+                eventJson["content"] = chunk;
+                eventJson["done"] = last;
+
+                Json::StreamWriterBuilder writer;
+                writer["indentation"] = "";
+                std::string payload = Json::writeString(writer, eventJson);
+                std::string event = "data: " + payload + "\n\n";
                 dataSink.write(event.c_str(), event.size());
+
                 if (last) {
-                    std::string end = "data: [DONE]\n\n";
-                    dataSink.write(end.c_str(), end.size());
                     dataSink.done();
                     return false;
                 }
                 return true;
             };
-            // 由于处理时间比较麻烦，还有就是先发一个空格
-            WriteChunk(" ", false);
             _ChatSDK->sendMessageStream(sessionId, message, WriteChunk);
             return true;
         });

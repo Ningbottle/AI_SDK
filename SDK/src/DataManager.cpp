@@ -155,6 +155,7 @@ namespace AI_Chat_SDK {
             Message msg( reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)),
                 reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
             msg._message_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+            msg._timestamp = sqlite3_column_int64(stmt, 4);
             messages.push_back(msg);
         }
         sqlite3_finalize(stmt);
@@ -445,6 +446,7 @@ namespace AI_Chat_SDK {
             Message msg( reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)),
                 reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
             msg._message_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+            msg._timestamp = sqlite3_column_int64(stmt, 4);
             messages.push_back(msg);
         }
         sqlite3_finalize(stmt);

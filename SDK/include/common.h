@@ -28,6 +28,7 @@ struct Config {
 // 2.1 通过apikey接入模型
 struct ApiConfig :public Config{
   std::string _apiKey; //接入模型的api key
+  std::string _baseUrl; // API 地址（可选，不填则用 Provider 默认）
 };
 
 // 2.2 通过Ollama接入模型

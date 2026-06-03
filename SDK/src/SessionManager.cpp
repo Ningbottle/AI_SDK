@@ -29,13 +29,13 @@ namespace AI_Chat_SDK
         return oss.str();
     }
 
-    std::string SessionManager::GenerateMessageId(size_t messageCounter)
+    std::string SessionManager::GenerateMessageId()
     {
         // 1. 自增计数器，生成全局唯一的消息 ID
-        messageCounter++; // FIXME: messageCounter 是传值的，外部不受影响，建议后续改成成员变量计数器
+        auto id = _messageCounter.fetch_add(1);
         std::time_t now = std::time(nullptr);
         std::ostringstream oss;
-        oss << "Message_" << now << "_" << std::setw(8) << std::setfill('0') << messageCounter;
+        oss << "Message_" << now << "_" << std::setw(8) << std::setfill('0') << id;
         return oss.str();
     }
 
@@ -119,21 +119,22 @@ namespace AI_Chat_SDK
     {
         // 1. 锁内：找到会话、构造消息、写入内存
         std::shared_ptr<Session> session;
+        Message msg(message._role, message._content);
         {
             std::lock_guard<std::mutex> lock(_mutex);
             auto it = _sessions.find(SessionId);
             if (it == _sessions.end()) {
                 return false;
             }
-            Message msg(message._role, message._content);
-            msg._message_id = GenerateMessageId(it->second->_messages.size());
+            msg._message_id = GenerateMessageId();
+            msg._timestamp = std::time(nullptr);
             it->second->_messages.push_back(msg);
             it->second->_updateAt = std::time(nullptr);
             session = it->second; // 锁内拷贝 shared_ptr
         }   // 锁在这里释放
         // 2. 锁外：写入数据库（insertMessage 内部同时更新了 sessions 表的 updated_time）
-        _dataManager.insertMessage(SessionId, message, session->_updateAt);
-        INFO("AddMessage: SessionId={}, message={}", SessionId, message._content);
+        _dataManager.insertMessage(SessionId, msg, msg._timestamp);
+        INFO("AddMessage: SessionId={}, message={}", SessionId, msg._content);
         return true;
     }
     // 5. 跟新会话的时间：

@@ -1,6 +1,7 @@
 #include "../include/ChatSDK.h"
 #include "../include/DeepSeekProvider.h"
 #include "../include/GLMProvider.h"
+#include "../include/KimiProvider.h"
 #include "../include/OllamalProvider.h"
 #include <asm-generic/errno.h>
 #include <memory>
@@ -29,7 +30,7 @@ namespace AI_Chat_SDK
         }
         if(!_LLMManager.isModelAvailable("Pro/moonshotai/Kimi-K2.6"))
         {
-            _LLMManager.registerModel("Pro/moonshotai/Kimi-K2.6", std::make_unique<GLMProvider>());
+            _LLMManager.registerModel("Pro/moonshotai/Kimi-K2.6", std::make_unique<KimiProvider>());
             INFO("Kimi-K2.6Provider registered successfully.");
         }
         //最后初始化ollama模型：
@@ -70,6 +71,8 @@ namespace AI_Chat_SDK
         }
         std::map<std::string, std::string> moduleParams;
         moduleParams["api_key"] = configs->_apiKey;
+        if (!configs->_baseUrl.empty())
+            moduleParams["base_url"] = configs->_baseUrl;
         if(!_LLMManager.initModel(moduleName, moduleParams))
         {
             ERROR("Failed to init model {}", moduleName);
