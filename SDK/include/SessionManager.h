@@ -32,11 +32,12 @@ namespace AI_Chat_SDK
         std::size_t getSessionCount()const;
     private:
         std::string GenerateSessionId();
-        std::string GenerateMessageId(size_t messageCounter);
+        std::string GenerateMessageId();
     private:
         std::unordered_map<std::string,std::shared_ptr<Session>> _sessions; // 管理会话id和会话
         mutable std::mutex _mutex; // 保护_sessions的并发访问 mutable表示const情况下是可以改变的
         std::atomic<uint64_t> _sessionCounter = {0};
+        std::atomic<uint64_t> _messageCounter = {0};
         DataManager _dataManager;
     };
 }

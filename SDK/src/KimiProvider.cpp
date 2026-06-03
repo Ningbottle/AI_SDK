@@ -210,16 +210,23 @@ namespace AI_Chat_SDK
                     if(reader->parse(modelData.c_str(), modelData.c_str() + modelData.size(), &root, &errs))
                     {
                         if(root.isMember("choices") && root["choices"].isArray() && root["choices"].size() > 0
-                            && root["choices"][0].isMember("delta") && root["choices"][0]["delta"].isMember("content"))
+                            && root["choices"][0].isMember("delta"))
                         {
-                            //后面有机会可以做思考链得显示
-                            //std::string thing = root["choices"][0]["delta"]["reasoning_content"].asString();
-                            std::string content = root["choices"][0]["delta"]["content"].asString();
+                            Json::Value& delta = root["choices"][0]["delta"];
 
-                            if(!content.empty())
+                            // 优先取 content（可见文本），为空时取 reasoning_content（思考链）
+                            std::string content;
+                            if (delta.isMember("content") && !delta["content"].isNull())
+                                content = delta["content"].asString();
+                            else if (delta.isMember("reasoning_content") && !delta["reasoning_content"].isNull())
+                                content = delta["reasoning_content"].asString();
+
+                            if (!content.empty())
                             {
                                 callback(content, false);
-                                fullResponse += content;
+                                // 只有可见 content 才收入 fullResponse，reasoning 不保存
+                                if (delta.isMember("content") && !delta["content"].isNull())
+                                    fullResponse += content;
                                 return true;
                             }
                         }
